@@ -45,84 +45,47 @@ for sentence in review_dataset["Text"]:
     if sentences != [""]:
         review_text.append(sentences)
 
+# All of the different lists that we will put our cleaned data into
+cleaned_summary = []
+cleaned_text = []
 
-# Removing duplicates
-clean_reviews_text = []
-
-for sentence in review_text:
-    # we split the string into a list of words so that it is easier for us to be able to remove the duplicate that we want to
-    split_sentence = sentence.split()
-    for word in split_sentence:
-        if split_sentence[split_sentence.index(word)] == split_sentence[split_sentence.index(word)-1]:
-            # here the reason why we are converting to a dictionary is because dictionaries automatically remove all duplicates and so we converted back from dictionaries to lists
-            split_sentence = list(dict.fromkeys(split_sentence))
-            # now we joined every single element of the split sentence to create a new string
-            clean_sentence = ' '.join(split_sentence)
-            clean_reviews_text.append(clean_sentence)
-
-# Here we are just performing tokenization on our data
-def tokenize_text(dataset):
-    for sentence in dataset:
-        sentence = word_tokenize(sentence)
-
-tokenize_text(clean_reviews_text)
-tokenize_text(review_summary)
-
-# removing non-alphabet tokens which will include special characters
-non_alpha_reviews_summary = []
-non_alpha_reviews_text = []
-
-def removing_non_alphabetic_letters(dataset, empty_dataset):
-    removing_non_alphabetic_letters = []
-    for sentences in dataset:
-        for word in sentences:
-            if word.isalpha() == True:
-                removing_non_alphabetic_letters.append(word)
-        empty_dataset.append(removing_non_alphabetic_letters) 
-
-removing_non_alphabetic_letters(clean_reviews_text,  non_alpha_reviews_text)     
-removing_non_alphabetic_letters(review_summary, non_alpha_reviews_summary)  
-
-
-removed_stopwords_summary = []
-removed_stopwords_text = []
-
-# Importing a list of all of the different stop words that we want to remove
 stop_words = set(stopwords.words('english'))
 
-def removing_stop_words(dataset, empty_dataset):
-    removing_stop_words = []
+# A function that will do all of the preprocessing that we need to do for our data
+def preprocessing_text(dataset, empty_dataset):
     for sentence in dataset:
-        for word in sentence:
-            if word.lower() not in stop_words:
-                removing_stop_words.append(word)
-            empty_dataset.append(removing_stop_words)
+        tokenized_sentence = word_tokenize(sentence)
 
-removing_stop_words(non_alpha_reviews_text, removed_stopwords_text)
-removing_stop_words(non_alpha_reviews_summary, removed_stopwords_summary)
+        new_sentence = []
+        for word in tokenized_sentence:
+             # removing non-alphabetic elements from our text
+            if word.isalpha() == False:
+                tokenized_sentence.remove(word)
 
-cleaned_reviews_text = []
-cleaned_reviews_summary = []
+        for word in tokenized_sentence:
+            # removing stop words from our text
+            if word.lower() in stop_words:
+                tokenized_sentence.remove(word) 
+        
+        # the reason why we use a second loop is because the first one is looping over the empty_sentence when it is not cleaned but if we loop over it after it has been updated through a new loop the problem of characters not being in the list will be gone
+        for word in tokenized_sentence:
+            # removing duplicate elements from our list
+            if tokenized_sentence[tokenized_sentence.index(word)] == tokenized_sentence[tokenized_sentence.index(word)-1]:
+                # here the reason why we are converting to a dictionary is because dictionaries automatically remove all duplicates and so we converted back from dictionaries to lists
+                cleaned_sentence = list(dict.fromkeys(tokenized_sentence))
+            
+            # performing stemmming
+            snowball = SnowballStemmer('english')    
+            # Using the Lancaster Stemmer algorithm on each of the words of the updated list
+            word = snowball.stem(word)
+            new_sentence.append(word)
+            sentence = ''.join(new_sentence)
 
-def snowball_stemming(dataset, empty_dataset):
-    snowball_sentence = []
-    for word in dataset:
-        # performing stemmming
-        snowball = SnowballStemmer('english')    
-        # Using the Snowball Stemmer algorithm on each of the words of the updated list
-        word = snowball.stem(word)
-        snowball_sentence.append(word)
-        concatanated_sentence = ''.join(snowball_sentence)
-    empty_dataset.append(concatanated_sentence)
+        # lowercasing the text
+        sentence = sentence.lower()
 
-snowball_stemming(removed_stopwords_text, cleaned_reviews_text)
-snowball_stemming(removed_stopwords_summary, cleaned_reviews_summary)
-
-def lowercase_dataset(dataset):
-    # here I converted everything into lowercase so that the computer does not think that HI and hi is a different word
-    for sentence in dataset:
-        sentence.lower()
-
-lowercase_dataset(removed_stopwords_text)
-lowercase_dataset(removed_stopwords_summary)
-
+        # adding all of the updated values to the final list
+        empty_dataset.append(sentence)
+ 
+preprocessing_text(review_text, cleaned_text)
+preprocessing_text(review_summary, cleaned_summary)
