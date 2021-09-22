@@ -89,3 +89,7 @@ def preprocessing_text(dataset, empty_dataset):
  
 preprocessing_text(review_text, cleaned_text)
 preprocessing_text(review_summary, cleaned_summary)
+
+# displaying the updated reviews and summaries           
+print(cleaned_text)
+print(cleaned_summary)
