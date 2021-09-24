@@ -3,9 +3,9 @@ import pandas as pd
 import tensorflow as tf
 import numpy as np
 import nltk
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
-from nltk.stem.snowball import SnowballStemmer
+from nltk.stem import WordNetLemmatizer
 
 nltk.download("all")
 
@@ -26,8 +26,6 @@ review_data.drop_duplicates(keep="first", inplace=True)
 
 # drop all of the rows that have a NULL or NAN value
 review_dataset = review_data.dropna()
-
-'''Data Preprocessing'''
 
 review_summary = []
 sentences = []
@@ -51,35 +49,55 @@ cleaned_text = []
 
 stop_words = set(stopwords.words('english'))
 
+
+summary = review_dataset["Summary"]
+text = review_dataset["Text"]
+
+
+input_sentence = "Hello, my name is dev and I like to eat pizza."
+punctuation = '''!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~'''
+new_input_sentence = ""
+'''
+for word in input_sentence:
+    for character in word:
+        if character not in punctuation:
+            new_input_sentence = new_input_sentence + character
+            
+print(new_input_sentence)
+'''
+
 # A function that will do all of the preprocessing that we need to do for our data
 def preprocessing_text(dataset, empty_dataset):
     for sentence in dataset:
         tokenized_sentence = word_tokenize(sentence)
 
-        new_sentence = []
+        clean_sentence = []
         for word in tokenized_sentence:
-             # removing non-alphabetic elements from our text
-            if word.isalpha() == False:
+            # removing non-alphanumeric elements from our text
+            if word.isalnum() == False and word != ' ':
                 tokenized_sentence.remove(word)
 
         for word in tokenized_sentence:
             # removing stop words from our text
             if word.lower() in stop_words:
-                tokenized_sentence.remove(word) 
-        
-        # the reason why we use a second loop is because the first one is looping over the empty_sentence when it is not cleaned but if we loop over it after it has been updated through a new loop the problem of characters not being in the list will be gone
+                tokenized_sentence.remove(word)
+
+        punctuation = '''!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~'''
+        new_sentence = ""
+
         for word in tokenized_sentence:
-            # removing duplicate elements from our list
-            if tokenized_sentence[tokenized_sentence.index(word)] == tokenized_sentence[tokenized_sentence.index(word)-1]:
-                # here the reason why we are converting to a dictionary is because dictionaries automatically remove all duplicates and so we converted back from dictionaries to lists
-                cleaned_sentence = list(dict.fromkeys(tokenized_sentence))
-            
-            # performing stemmming
-            snowball = SnowballStemmer('english')    
-            # Using the Lancaster Stemmer algorithm on each of the words of the updated list
-            word = snowball.stem(word)
-            new_sentence.append(word)
-            sentence = ''.join(new_sentence)
+            for character in word:
+                if character not in punctuation:
+                    new_sentence = new_sentence + character
+                    new_sentence = ' '.join(character)
+            new_sentence = ' '.join(word)
+
+            # Performing lemmanization
+            lemmatizer = WordNetLemmatizer()    
+            # Using the WordNetLemmatizer algorithm on each of the words of the updated list
+            word = lemmatizer.lemmatize(word, pos='v')
+            clean_sentence.append(word)
+            sentence = ''.join(clean_sentence)
 
         # lowercasing the text
         sentence = sentence.lower()
@@ -93,3 +111,4 @@ preprocessing_text(review_summary, cleaned_summary)
 # displaying the updated reviews and summaries           
 print(cleaned_text)
 print(cleaned_summary)
+
