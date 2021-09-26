@@ -54,18 +54,6 @@ summary = review_dataset["Summary"]
 text = review_dataset["Text"]
 
 
-input_sentence = "Hello, my name is dev and I like to eat pizza."
-punctuation = '''!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~'''
-new_input_sentence = ""
-'''
-for word in input_sentence:
-    for character in word:
-        if character not in punctuation:
-            new_input_sentence = new_input_sentence + character
-            
-print(new_input_sentence)
-'''
-
 # A function that will do all of the preprocessing that we need to do for our data
 def preprocessing_text(dataset, empty_dataset):
     for sentence in dataset:
@@ -82,21 +70,26 @@ def preprocessing_text(dataset, empty_dataset):
             if word.lower() in stop_words:
                 tokenized_sentence.remove(word)
 
-        punctuation = '''!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~'''
-        new_sentence = ""
+        clean_sentence = []
+        reviews_sentence = []
+        new_sentence = []
 
-        for word in tokenized_sentence:
-            for character in word:
-                if character not in punctuation:
-                    new_sentence = new_sentence + character
-                    new_sentence = ' '.join(character)
-            new_sentence = ' '.join(word)
+        for sentence in input_data:
+            for word in sentence:
+                for character in word:
+                    if character not in punctuation:
+                        word = re.sub(r'[^\w\s]', '', word)
+                        new_sentence.append(word)
 
-            # Performing lemmanization
-            lemmatizer = WordNetLemmatizer()    
-            # Using the WordNetLemmatizer algorithm on each of the words of the updated list
-            word = lemmatizer.lemmatize(word, pos='v')
-            clean_sentence.append(word)
+            clean_sentence = ''.join(new_sentence)
+        
+        for word in clean_sentence:
+            # performing stemming
+            
+            snowball_stemmer = SnowballStemmer('english')    
+            # Using the Snowball Stemmer algorithm on each of the words of the updated list
+            word = snowball_stemmer.stem(word)
+            reviews_sentence.append(word)
             sentence = ''.join(clean_sentence)
 
         # lowercasing the text
@@ -111,4 +104,3 @@ preprocessing_text(review_summary, cleaned_summary)
 # displaying the updated reviews and summaries           
 print(cleaned_text)
 print(cleaned_summary)
-
